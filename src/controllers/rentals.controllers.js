@@ -83,14 +83,13 @@ export async function finishRental(req, res) {
 
         const rent = rentalExist.rows[0]
         const rentDate = dayjs(rent.rentDate)   
-        const returnDate = dayjs(rent.returnDate)
+        const returnDate = dayjs()
         const daysRented = rentDate.add(rent.daysRented,'day')
         const diff = returnDate.diff(daysRented,'day')
 
         const pricePerDay = await db.query(`
             SELECT "pricePerDay" FROM games WHERE id = ${rent.gameId}
         `)
-        
         const delayFee = diff > 0 ? pricePerDay.rows[0].pricePerDay * diff : 0
 
         const finish = await db.query(

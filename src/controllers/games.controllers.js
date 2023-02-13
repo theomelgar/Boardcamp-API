@@ -24,9 +24,7 @@ export async function addGame(req, res) {
 export async function findGames(req, res) {
     const name = req.query.name.toLowerCase()
     try {
-        if(name){
-
-        }
+       
         const games = await db.query("SELECT games.* FROM games")
 
         res.send(games.rows)
