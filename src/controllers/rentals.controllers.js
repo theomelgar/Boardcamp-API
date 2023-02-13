@@ -11,27 +11,27 @@ export async function addRental(req, res) {
         }
 
         const customerExist = await db.query(
-            `SELECT * FROM customers WHERE id = $1`,[customerId]
+            `SELECT * FROM customers WHERE id = $1`, [customerId]
         )
         if (customerExist.rowCount !== 1) {
             return res.status(400).send('Customer not cataloged')
         }
 
-        const  checkStock = await db.query(
-            `SELECT "stockTotal" FROM games WHERE id = $1`,[gameId]
+        const checkStock = await db.query(
+            `SELECT "stockTotal" FROM games WHERE id = $1`, [gameId]
         )
 
         const isRented = await db.query(
-            `SELECT * FROM rentals WHERE "gameId" = $1`,[gameId]
+            `SELECT * FROM rentals WHERE "gameId" = $1`, [gameId]
         )
 
-        if(checkStock.rows[0].stockTotal <= isRented.rowCount)[
+        if (checkStock.rows[0].stockTotal <= isRented.rowCount) [
             res.sendStatus(400)
         ]
 
         const insert = await db.query(
             `INSERT INTO rentals ("customerId", "gameId", "daysRented", "rentDate", "originalPrice")
-             VALUES ($1, $2, $3, NOW(), (SELECT "pricePerDay" FROM games WHERE id = $2)*3)
+             VALUES ($1, $2, $3, NOW(), (SELECT "pricePerDay" FROM games WHERE id = $2)     * $3)
              `,
             [customerId, gameId, daysRented]
         )
@@ -46,7 +46,15 @@ export async function addRental(req, res) {
 
 export async function findRentals(req, res) {
     try {
-        const rentals = await db.query(`SELECT * FROM rentals`)
+        const rentals = await db.query(`
+        SELECT
+            rentals.*,
+            json_build_object('id', customers.id, 'name', customers.name) AS customer,
+            json_build_object('id', games.id, 'name', games.name) AS game
+        FROM rentals
+        JOIN customers ON rentals."customerId" = customers.id
+        JOIN games ON rentals."gameId" = games.id
+        `)
 
         res.send(rentals.rows)
 
