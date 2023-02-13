@@ -1,4 +1,5 @@
 import { Router } from "express"
+import { findRentals } from "../controllers/rentals.controllers.js"
 import { validateSchema } from "../middleware/validateSchemas.middleware.js"
 
 const rentalsRouter = Router()
