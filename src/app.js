@@ -1,7 +1,7 @@
 import express from "express"
 import cors from "cors"
 import dotenv from "dotenv"
-import gamesRouter from "./routes/GamesRoutes.js"
+import router from "./routes/index.routers.js"
 
 dotenv.config()
 
@@ -12,6 +12,6 @@ app.use(cors())
 const PORT = process.env.PORT
 
 //routes
-app.use([ gamesRouter ])
+app.use( router )
 
-app.listen(PORT, () => console.log("Servidor online na porta: " + PORT)) 
+app.listen(PORT, () => console.log("Server running in port: " + PORT)) 
