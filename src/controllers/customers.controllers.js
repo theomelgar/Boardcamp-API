@@ -54,7 +54,7 @@ export async function updateCustomer(req, res) {
         const customer = await db.query(`SELECT * FROM customers WHERE id = ${id}`)
         if (customer.rowCount === 0) {
 
-            return res.status(404).send(console.log("Client id does not exists"))
+            return res.status(404).send(console.log("Client id does not exist"))
         }
         const { name, phone, cpf, birthday } = req.body
 

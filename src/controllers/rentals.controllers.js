@@ -1,5 +1,5 @@
 import { db } from "../config/database.connection.js"
-
+import dayjs from "dayjs"
 export async function addRental(req, res) {
     const { customerId, gameId, daysRented } = req.body
     try {
@@ -63,43 +63,32 @@ export async function findRentals(req, res) {
     }
 }
 
-export async function findrentalId(req, res) {
-    const { id } = req.params
-    try {
-        const rental = await db.query(`SELECT * FROM rentals WHERE id = ${id}`)
-        if (!rental) return res.status(404).send(console.log("Client id does not exists"))
-        res.send(rental.rows[0])
-    } catch (error) {
-        res.status(500).send(error.message)
-    }
-}
-
-
-export async function updaterental(req, res) {
+export async function finishRental(req, res) {
     const id = Number(req.params.id)
     if (!id || id < 1) {
         return res.sendStatus(400)
     }
     try {
-        const rental = await db.query(`SELECT * FROM rentals WHERE id = ${id}`)
-        if (rental.rowCount === 0) {
-
-            return res.status(404).send(console.log("Client id does not exists"))
+        const rentalExist = await db.query(`SELECT * FROM rentals WHERE id = ${id}`)
+        if (rentalExist.rowCount !== 1) {
+            return res.status(404).send(console.log("Rental id does not exist"))
         }
-        const { name, phone, cpf, birthday } = req.body
 
-        const cpfExist = await db.query(
-            'SELECT rentals.cpf FROM rentals WHERE cpf=$1 AND id<>$2',
-            [cpf, id]
-        )
-        if (cpfExist.rowCount > 0) {
-            return res.status(409).send('Name already taken.')
+        const rentalOpen = await db.query(`
+            SELECT * FROM rentals WHERE id = ${id} AND "returnDate" IS NOT null
+        `)
+        if (rentalOpen.rowCount !== 0) {
+            return res.status(400).send(console.log("Rental is already closed"))
         }
-        const updatedrental = await db.query(
-            'UPDATE rentals SET name = $1, phone = $2, cpf = $3, birthday = $4 WHERE id = $5',
-            [name, phone, cpf, birthday, id]
+        
+        
+        const delayFee = dayjs().diff(rentalExist.rows[0].rentDate, 'day')
+        
+        const finish = await db.query(
+            'UPDATE rentals SET "returnDate" = NOW(), "delayFee" = $1 WHERE id = $2',
+            [delayFee, id]
         )
-        if (updaterental.rowCount === 0) {
+        if (finish.rowCount === 0) {
             return res.sendStatus(400)
         }
 
