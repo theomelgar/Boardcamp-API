@@ -90,7 +90,8 @@ export async function finishRental(req, res) {
         const pricePerDay = await db.query(`
             SELECT "pricePerDay" FROM games WHERE id = ${rent.gameId}
         `)
-        const delayFee = diff > 0 ? pricePerDay * diff : 0
+        
+        const delayFee = diff > 0 ? pricePerDay.rows[0].pricePerDay * diff : 0
 
         const finish = await db.query(
             'UPDATE rentals SET "returnDate" = NOW(), "delayFee" = $1 WHERE id = $2',
