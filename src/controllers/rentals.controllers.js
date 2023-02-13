@@ -82,10 +82,14 @@ export async function finishRental(req, res) {
         }
 
         const rent = rentalExist.rows[0]
-        const rentDate = dayjs(rent.rentDate)
+        const rentDate = dayjs(rent.rentDate)   
         const returnDate = dayjs(rent.returnDate)
         const daysRented = rentDate.add(rent.daysRented,'day')
         const diff = returnDate.diff(daysRented,'day')
+
+        const pricePerDay = await db.query(`
+            SELECT "pricePerDay" FROM games WHERE id = ${rent.gameId}
+        `)
         const delayFee = diff > 0 ? pricePerDay * diff : 0
 
         const finish = await db.query(
@@ -114,15 +118,18 @@ export async function deleteRental(req, res) {
             return res.status(404).send(console.log("Rental id does not exist"))
         }
         const rentalOpen = await db.query(`
-            SELECT * FROM rentals WHERE id = ${id} AND "returnDate" IS NOT null
+            SELECT * FROM rentals WHERE id = ${id} AND "returnDate" IS null
         `)
         if (rentalOpen.rowCount !== 0) {
-            return res.status(400).send(console.log("Rental is already closed"))
+            return res.status(400).send(console.log("Rental is not closed yet"))
         }
 
-        await db.query(`
+        const remove = await db.query(`
             DELETE FROM rentals WHERE id = ${id}
         `)
+        if(remove.rowCount === 0){
+            res.status(500).send("Error in DELETE query")
+        }
         res.sendStatus(200)
     } catch (error) {
         res.status(500).send(error.message)
