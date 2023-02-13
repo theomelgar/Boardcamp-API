@@ -1,22 +1,44 @@
 import { db } from "../config/database.connection.js"
 
 export async function addRental(req, res) {
-    const { name, phone, cpf, birthday } = req.body
+    const { customerId, gameId, daysRented } = req.body
     try {
-        const cpfExist = await db.query(
-            'SELECT * FROM rentals WHERE cpf=$1', [cpf]
+        const gameExist = await db.query(
+            'SELECT * FROM games WHERE id=$1', [gameId]
         )
-        if (cpfExist.rowCount > 0) {
-            return res.status(409).send('Name already taken.')
+        if (gameExist.rowCount !== 1) {
+            return res.status(400).send('Game not cataloged')
         }
+
+        const customerExist = await db.query(
+            `SELECT * FROM customers WHERE id = $1`,[customerId]
+        )
+        if (customerExist.rowCount !== 1) {
+            return res.status(400).send('Customer not cataloged')
+        }
+
+        const  checkStock = await db.query(
+            `SELECT "stockTotal" FROM games WHERE id = $1`,[gameId]
+        )
+
+        const isRented = await db.query(
+            `SELECT * FROM rentals WHERE "gameId" = $1`,[gameId]
+        )
+
+        if(checkStock.rows[0].stockTotal <= isRented.rowCount)[
+            res.sendStatus(400)
+        ]
+
         const insert = await db.query(
-            'INSERT INTO rentals (name, phone, cpf, birthday) VALUES ($1, $2, $3, $4)',
-            [name, phone, cpf, birthday]
+            `INSERT INTO rentals ("customerId", "gameId", "daysRented", "rentDate", "originalPrice")
+             VALUES ($1, $2, $3, NOW(), (SELECT "pricePerDay" FROM games WHERE id = $2)*3)
+             `,
+            [customerId, gameId, daysRented]
         )
         if (insert.rowCount === 0) {
             return res.sendStatus(400)
         }
-        res.status(201).send("Costumer created")
+        res.status(201).send("Rental created")
     } catch (error) {
         res.status(500).send(error.message)
     }
@@ -24,7 +46,7 @@ export async function addRental(req, res) {
 
 export async function findRentals(req, res) {
     try {
-        const rentals = await db.query("SELECT * FROM rentals")
+        const rentals = await db.query(`SELECT * FROM rentals`)
 
         res.send(rentals.rows)
 
@@ -79,9 +101,9 @@ export async function updaterental(req, res) {
     }
 }
 
-export async function deleteRental( req, res){
+export async function deleteRental(req, res) {
     try {
-        
+
     } catch (error) {
         res.status(500).send(error.message)
     }

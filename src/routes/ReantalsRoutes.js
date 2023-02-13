@@ -1,10 +1,11 @@
 import { Router } from "express"
-import { findRentals } from "../controllers/rentals.controllers.js"
+import { addRental, findRentals } from "../controllers/rentals.controllers.js"
 import { validateSchema } from "../middleware/validateSchemas.middleware.js"
+import { rentalSchema } from "../schemas/rental.schema.js"
 
 const rentalsRouter = Router()
 
-rentalsRouter.get("/rentals", findRentals)
-rentalsRouter.post("/rentals", validateSchema(addRentalschema), addGame)
+rentalsRouter.get("/", findRentals)
+rentalsRouter.post("/", validateSchema(rentalSchema), addRental)
 
 export default rentalsRouter

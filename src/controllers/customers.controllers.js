@@ -13,8 +13,8 @@ export async function addCustomer(req, res) {
             'INSERT INTO customers (name, phone, cpf, birthday) VALUES ($1, $2, $3, $4)',
             [name, phone, cpf, birthday]
         )
-        if (insert.rowCount === 0) {
-            return res.sendStatus(400)
+        if (insert.rowCount === 0){
+             return res.sendStatus(400)
         }
         res.status(201).send("Costumer created")
     } catch (error) {
@@ -37,7 +37,7 @@ export async function findCustomerId(req, res) {
     const { id } = req.params
     try {
         const customer = await db.query(`SELECT * FROM customers WHERE id = ${id}`)
-        if (!customer) return res.status(404).send(console.log("Client id does not exists"))
+        if (customer.rowCount === 0) return res.status(404).send(console.log("Client id does not exists"))
         res.send(customer.rows[0])
     } catch (error) {
         res.status(500).send(error.message)
@@ -69,7 +69,7 @@ export async function updateCustomer(req, res) {
             'UPDATE customers SET name = $1, phone = $2, cpf = $3, birthday = $4 WHERE id = $5',
             [name, phone, cpf, birthday, id]
         )
-        if (updateCustomer.rowCount === 0) {
+        if(updatedCustomer.rowCount === 0){
             return res.sendStatus(400)
         }
 
