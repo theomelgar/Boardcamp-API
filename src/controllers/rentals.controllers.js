@@ -80,10 +80,14 @@ export async function finishRental(req, res) {
         if (rentalOpen.rowCount !== 0) {
             return res.status(400).send(console.log("Rental is already closed"))
         }
-        
-        
-        const delayFee = dayjs().diff(rentalExist.rows[0].rentDate, 'day')
-        
+
+        const rent = rentalExist.rows[0]
+        const rentDate = dayjs(rent.rentDate)
+        const returnDate = dayjs(rent.returnDate)
+        const daysRented = rentDate.add(rent.daysRented,'day')
+        const diff = returnDate.diff(daysRented,'day')
+        const delayFee = diff > 0 ? pricePerDay * diff : 0
+
         const finish = await db.query(
             'UPDATE rentals SET "returnDate" = NOW(), "delayFee" = $1 WHERE id = $2',
             [delayFee, id]
@@ -99,8 +103,27 @@ export async function finishRental(req, res) {
 }
 
 export async function deleteRental(req, res) {
-    try {
+    const id = Number(req.params.id)
+    if (!id || id < 1) {
+        return res.sendStatus(400)
+    }
 
+    try {
+        const rentalExist = await db.query(`SELECT * FROM rentals WHERE id = ${id}`)
+        if (rentalExist.rowCount !== 1) {
+            return res.status(404).send(console.log("Rental id does not exist"))
+        }
+        const rentalOpen = await db.query(`
+            SELECT * FROM rentals WHERE id = ${id} AND "returnDate" IS NOT null
+        `)
+        if (rentalOpen.rowCount !== 0) {
+            return res.status(400).send(console.log("Rental is already closed"))
+        }
+
+        await db.query(`
+            DELETE FROM rentals WHERE id = ${id}
+        `)
+        res.sendStatus(200)
     } catch (error) {
         res.status(500).send(error.message)
     }
