@@ -3,17 +3,17 @@ import dayjs from "dayjs"
 export async function addRental(req, res) {
     const { customerId, gameId, daysRented } = req.body
     try {
-        const gameExist = await db.query(
+        const gameExists = await db.query(
             'SELECT * FROM games WHERE id=$1', [gameId]
         )
-        if (gameExist.rowCount !== 1) {
+        if (gameExists.rowCount !== 1) {
             return res.status(400).send('Game not cataloged')
         }
 
-        const customerExist = await db.query(
+        const customerExists = await db.query(
             `SELECT * FROM customers WHERE id = $1`, [customerId]
         )
-        if (customerExist.rowCount !== 1) {
+        if (customerExists.rowCount !== 1) {
             return res.status(400).send('Customer not cataloged')
         }
 
@@ -69,9 +69,9 @@ export async function finishRental(req, res) {
         return res.sendStatus(400)
     }
     try {
-        const rentalExist = await db.query(`SELECT * FROM rentals WHERE id = ${id}`)
-        if (rentalExist.rowCount !== 1) {
-            return res.status(404).send(console.log("Rental id does not exist"))
+        const rentalExists = await db.query(`SELECT * FROM rentals WHERE id = ${id}`)
+        if (rentalExists.rowCount !== 1) {
+            return res.status(404).send(console.log("Rental id does not exists"))
         }
 
         const rentalOpen = await db.query(`
@@ -81,7 +81,7 @@ export async function finishRental(req, res) {
             return res.status(400).send(console.log("Rental is already closed"))
         }
 
-        const rent = rentalExist.rows[0]
+        const rent = rentalExists.rows[0]
         const rentDate = dayjs(rent.rentDate)   
         const returnDate = dayjs()
         const daysRented = rentDate.add(rent.daysRented,'day')
@@ -113,9 +113,9 @@ export async function deleteRental(req, res) {
     }
 
     try {
-        const rentalExist = await db.query(`SELECT * FROM rentals WHERE id = ${id}`)
-        if (rentalExist.rowCount !== 1) {
-            return res.status(404).send(console.log("Rental id does not exist"))
+        const rentalExists = await db.query(`SELECT * FROM rentals WHERE id = ${id}`)
+        if (rentalExists.rowCount !== 1) {
+            return res.status(404).send(console.log("Rental id does not exists"))
         }
         const rentalOpen = await db.query(`
             SELECT * FROM rentals WHERE id = ${id} AND "returnDate" IS null

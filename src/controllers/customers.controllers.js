@@ -3,10 +3,10 @@ import { db } from "../config/database.connection.js"
 export async function addCustomer(req, res) {
     const { name, phone, cpf, birthday } = req.body
     try {
-        const cpfExist = await db.query(
+        const cpfExists = await db.query(
             'SELECT customers.cpf FROM customers WHERE cpf=$1', [cpf]
         )
-        if (cpfExist.rowCount > 0) {
+        if (cpfExists.rowCount > 0) {
             return res.status(409).send('Name already taken.')
         }
         const insert = await db.query(
@@ -54,15 +54,15 @@ export async function updateCustomer(req, res) {
         const customer = await db.query(`SELECT * FROM customers WHERE id = ${id}`)
         if (customer.rowCount === 0) {
 
-            return res.status(404).send(console.log("Client id does not exist"))
+            return res.status(404).send(console.log("Client id does not exists"))
         }
         const { name, phone, cpf, birthday } = req.body
 
-        const cpfExist = await db.query(
+        const cpfExists = await db.query(
             'SELECT customers.cpf FROM customers WHERE cpf=$1 AND id<>$2',
             [cpf, id]
         )
-        if (cpfExist.rowCount > 0) {
+        if (cpfExists.rowCount > 0) {
             return res.status(409).send('Name already taken.')
         }
         const updatedCustomer = await db.query(

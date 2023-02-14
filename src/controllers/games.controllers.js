@@ -3,10 +3,10 @@ import { db } from "../config/database.connection.js"
 export async function addGame(req, res) {
     const { name, image, stockTotal, pricePerDay } = req.body
     try {
-        const nameExist = await db.query(
+        const nameExists = await db.query(
             'SELECT games.name FROM games WHERE name=$1', [name]
         )
-        if (nameExist.rowCount > 0) {
+        if (nameExists.rowCount > 0) {
             return res.status(409).send('Name already taken.')
         }
         const insert = await db.query(
